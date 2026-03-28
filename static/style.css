@@ -1,0 +1,253 @@
+/* Global Styles */
+:root {
+    --primary-color: #007bff;
+    --secondary-color: #6c757d;
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --light-bg: #f8f9fa;
+    --dark-text: #212529;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    transition: background 0.3s ease;
+}
+
+.bg-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding-bottom: 2rem;
+}
+
+/* Card Styling */
+.card {
+    border: none;
+    border-radius: 15px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2) !important;
+}
+
+.card-body {
+    padding: 2rem;
+}
+
+/* Weather Card */
+.weather-card {
+    background: linear-gradient(to bottom, #ffffff, #f8f9fa);
+}
+
+/* Search Form */
+.form-control-lg {
+    border-radius: 10px;
+    border: 2px solid #e0e0e0;
+    padding: 0.75rem 1.25rem;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control-lg:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Temperature Unit Selector */
+.unit-selector .btn-group {
+    display: flex;
+    gap: 0;
+}
+
+.unit-selector .btn-check:checked + .btn-outline-primary {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.unit-selector .btn-outline-primary {
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    font-weight: 600;
+    flex: 1;
+    padding: 0.5rem;
+    border-radius: 0;
+    transition: all 0.3s ease;
+}
+
+.unit-selector .btn-outline-primary:first-of-type {
+    border-radius: 8px 0 0 8px;
+}
+
+.unit-selector .btn-outline-primary:last-of-type {
+    border-radius: 0 8px 8px 0;
+}
+
+.unit-selector .btn-outline-primary:hover {
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+.btn-lg {
+    border-radius: 10px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    transform: scale(1.02);
+}
+
+/* Weather Icon */
+.weather-emoji {
+    font-size: 6rem;
+    line-height: 1;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
+    margin: 0.5rem 0;
+}
+
+.weather-description {
+    font-size: 1.2rem;
+    color: #666;
+    font-weight: 500;
+    margin-top: 0.5rem;
+}
+
+/* Temperature Display */
+.temp-display {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.temp-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    display: block;
+    line-height: 1;
+}
+
+.temp-display small {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.95rem;
+    margin-top: 0.5rem;
+}
+
+/* Detail Boxes */
+.detail-box {
+    display: flex;
+    align-items: center;
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 10px;
+    border-left: 4px solid var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+.detail-box:hover {
+    background: #e9ecef;
+    transform: translateX(5px);
+}
+
+.detail-box i {
+    font-size: 1.5rem;
+}
+
+.detail-box span {
+    font-size: 0.95rem;
+    color: #333;
+}
+
+.detail-box strong {
+    color: #212529;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+/* Alert Styling */
+.alert {
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.alert-danger .btn-close {
+    opacity: 0.8;
+}
+
+/* Headers */
+h1, h2 {
+    font-weight: 700;
+    color: #212529;
+}
+
+/* Text Utilities */
+.text-white-50 {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Responsive Design */
+@media (max-width: 576px) {
+    .container {
+        padding: 0 1rem;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .temp-value {
+        font-size: 2rem;
+    }
+
+    .weather-emoji {
+        font-size: 4rem;
+    }
+
+    .detail-box {
+        margin-bottom: 0.5rem;
+    }
+
+    h1 {
+        font-size: 1.75rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    .unit-selector .btn-outline-primary {
+        font-size: 0.9rem;
+        padding: 0.4rem 0.2rem;
+    }
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card {
+    animation: fadeIn 0.5s ease-in-out;
+}
