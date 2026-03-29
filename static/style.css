@@ -311,6 +311,9 @@ h1, h2 {
     opacity: 0.85;
     margin-top: 0.2rem;
 }
+
+/* Forecast Section */
+.forecast-container {
     display: flex;
     gap: 10px;
     overflow-x: auto;
