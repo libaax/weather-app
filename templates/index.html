@@ -31,6 +31,9 @@
                                     required
                                 >
                                 <button class="btn btn-primary btn-lg" type="submit">Search</button>
+                                <button class="btn btn-secondary btn-lg" type="button" id="location-btn" title="Click to use your current location (requires location permission)">
+                                    <i class="fas fa-location-dot"></i>
+                                </button>
                             </div>
                             
                             <!-- Temperature Unit Selector -->
@@ -48,6 +51,21 @@
                             
                             <small class="text-muted d-block mt-2">e.g., London, New York, Tokyo</small>
                         </form>
+                    </div>
+                </div>
+
+                <!-- Recent Cities Section -->
+                <div id="recent-cities" class="mb-3" style="display: none;">
+                    <div class="card shadow-lg">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0"><i class="fas fa-history"></i> Recent Cities</h6>
+                                <small>
+                                    <button type="button" class="btn btn-sm btn-link text-danger" id="clear-history">Clear</button>
+                                </small>
+                            </div>
+                            <div id="recent-cities-list" class="recent-cities-pills"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -111,6 +129,27 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- 5-Day Forecast Section -->
+                        {% if weather_data.forecast %}
+                        <hr class="my-4">
+                        <h5 class="text-center mb-3">5-Day Forecast</h5>
+                        <div class="forecast-container">
+                            {% for day in weather_data.forecast %}
+                            <div class="forecast-card">
+                                <div class="forecast-date">
+                                    {{ day.date.split('-')[2] }}
+                                </div>
+                                <div class="forecast-icon">{{ day.icon }}</div>
+                                <div class="forecast-temps">
+                                    <span class="forecast-max">{{ day.max_temp }}{{ weather_data.unit }}</span>
+                                    <span class="forecast-min">{{ day.min_temp }}{{ weather_data.unit }}</span>
+                                </div>
+                                <div class="forecast-description">{{ day.description }}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
                 {% endif %}
@@ -127,5 +166,216 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Search History Script -->
+    <script>
+        const MAX_RECENT_CITIES = 5;
+        const STORAGE_KEY = 'recentCities';
+
+        // Load and display recent cities on page load
+        window.addEventListener('load', function() {
+            loadRecentCities();
+        });
+
+        // Handle form submission to add to history
+        document.querySelector('form')?.addEventListener('submit', function() {
+            const cityInput = document.getElementById('city').value.trim();
+            if (cityInput) {
+                addToHistory(cityInput);
+            }
+        });
+
+        // Clear history button
+        document.getElementById('clear-history')?.addEventListener('click', function() {
+            if (confirm('Are you sure you want to clear your search history?')) {
+                clearHistory();
+            }
+        });
+
+        // Geolocation button
+        document.getElementById('location-btn')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const btn = this;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+            
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by your browser.\n\nPlease try:\n1. Using a different browser\n2. Manually searching for your city instead');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                return;
+            }
+            
+            console.log('Starting geolocation request...');
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    console.log('Geolocation success:', position.coords);
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    const unit = document.querySelector('input[name="unit"]:checked').value;
+                    
+                    console.log('Location detected:', latitude, longitude);
+                    fetchWeatherFromLocation(latitude, longitude, unit, btn, originalText);
+                },
+                function(error) {
+                    console.error('Geolocation error code:', error.code);
+                    console.error('Geolocation error message:', error.message);
+                    
+                    let message = '';
+                    if (error.code === 1) { // PERMISSION_DENIED
+                        message = 'Location access denied.\n\nTo enable:\n';
+                        message += '• Chrome: Click 🔒 in address bar → Location → Allow\n';
+                        message += '• Firefox: Allow when prompted, or check privacy settings\n';
+                        message += '• Safari: Check System Preferences → Security & Privacy → Location Services\n\n';
+                        message += 'After enabling, please refresh this page and try again.';
+                    } else if (error.code === 2) { // POSITION_UNAVAILABLE
+                        message = 'Location information is unavailable.\n\nPlease:\n1. Check your internet connection\n2. Ensure location services are enabled on your device\n3. Try again or manually search for your city';
+                    } else if (error.code === 3) { // TIMEOUT
+                        message = 'Location request timed out.\n\nPlease try again or manually search for your city.';
+                    } else {
+                        message = 'Unable to get location: ' + error.message + '\n\nPlease manually search for your city.';
+                    }
+                    
+                    alert(message);
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                },
+                {
+                    timeout: 15000,
+                    enableHighAccuracy: false,
+                    maximumAge: 0
+                }
+            );
+        });
+
+        function fetchWeatherFromLocation(latitude, longitude, unit, btn, originalText) {
+            console.log('Fetching weather for:', latitude, longitude, unit);
+            
+            fetch('/api/weather-from-location', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    latitude: latitude,
+                    longitude: longitude,
+                    unit: unit
+                })
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                
+                if (data.success && data.weather) {
+                    console.log('Weather obtained, updating form with city:', data.weather.city);
+                    // Set the city value
+                    document.getElementById('city').value = data.weather.city;
+                    // Add to history
+                    addToHistory(data.weather.city);
+                    // Submit the form to display the weather
+                    setTimeout(() => {
+                        document.querySelector('form').submit();
+                    }, 300);
+                } else {
+                    const errorMsg = data.error || 'Unknown error occurred';
+                    console.error('API Error:', errorMsg);
+                    alert('Error: ' + errorMsg);
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                alert('Network error: ' + error.message);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+        }
+
+        function addToHistory(city) {
+            let cities = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            
+            // Remove if already exists (we'll add it to the top)
+            cities = cities.filter(c => c.toLowerCase() !== city.toLowerCase());
+            
+            // Add new city to the beginning
+            cities.unshift({
+                name: city,
+                timestamp: new Date().toLocaleString()
+            });
+            
+            // Keep only the last 5
+            cities = cities.slice(0, MAX_RECENT_CITIES);
+            
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(cities));
+            loadRecentCities();
+        }
+
+        function loadRecentCities() {
+            const cities = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            const container = document.getElementById('recent-cities-list');
+            const recentSection = document.getElementById('recent-cities');
+            
+            if (cities.length === 0) {
+                recentSection.style.display = 'none';
+                return;
+            }
+            
+            recentSection.style.display = 'block';
+            container.innerHTML = '';
+            
+            cities.forEach(city => {
+                const pill = document.createElement('button');
+                pill.type = 'button';
+                pill.className = 'recent-city-pill';
+                pill.innerHTML = `
+                    <span class="city-name">${city.name}</span>
+                    <span class="city-time" title="${city.timestamp}">
+                        ${getTimeAgo(city.timestamp)}
+                    </span>
+                `;
+                pill.addEventListener('click', function() {
+                    document.getElementById('city').value = city.name;
+                    document.querySelector('form').submit();
+                });
+                container.appendChild(pill);
+            });
+        }
+
+        function clearHistory() {
+            localStorage.removeItem(STORAGE_KEY);
+            loadRecentCities();
+        }
+
+        function getTimeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const seconds = Math.floor((now - date) / 1000);
+            
+            let interval = seconds / 31536000;
+            if (interval > 1) return Math.floor(interval) + 'y ago';
+            
+            interval = seconds / 2592000;
+            if (interval > 1) return Math.floor(interval) + 'mo ago';
+            
+            interval = seconds / 86400;
+            if (interval > 1) return Math.floor(interval) + 'd ago';
+            
+            interval = seconds / 3600;
+            if (interval > 1) return Math.floor(interval) + 'h ago';
+            
+            interval = seconds / 60;
+            if (interval > 1) return Math.floor(interval) + 'm ago';
+            
+            return 'just now';
+        }
+    </script>
 </body>
 </html>
